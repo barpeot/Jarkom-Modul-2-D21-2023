@@ -177,8 +177,8 @@ mv -i "parikesit.abimanyu.yyy.com" "/var/www/parikesit.abimanyu.d21"
 
 htaccess=$"
 RewriteEngine On
-RewriteCond http://parikesit.abimanyu.d21.com/public/images/%{REQUEST_URI} ^(.*)abimanyu(.*)(.jpg|.png|.jpeg)$
-RewriteCond http://parikesit.abimanyu.d21.com/public/images/%{REQUEST_URI} !/public/images/abimanyu.png
+RewriteCond http://parikesit.abimanyu.d21.com/%{REQUEST_URI} ^/((.*)abimanyu(.*).(jpg|png|jpeg))$
+RewriteCond http://parikesit.abimanyu.d21.com/%{REQUEST_URI} !/public/images/abimanyu.png
 RewriteRule ^(.*)$ http://parikesit.abimanyu.d21.com/public/images/abimanyu.png [R=301,L]
 "
 

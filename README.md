@@ -1,1 +1,205 @@
 # Jarkom-Modul-2-D21-2023
+
+# Anggota Kelompok:
++ Akbar Putra Asenti Priyanto (5025211004)
++ Farrela Ranku Mahhissa (5025211129)
+
+## Soal 1
+Pada soal ini diminta untuk membuat topologi sesuai dengan pembagian yang telah diberikan. Berikut adalah topologi yang kami gunakan:
+![Topologi_7](/assets/1_topologi.png)
+
+## Soal 2
+Pada soal ini diminta untuk melakukan setup website arjuna.d21.com. Setup ini dilakukan di node Yudhistira dan mengarah ke ip arjuna (10.32.1.4).
+
+### scriptYudhistira.sh
+Pada node Yudhistira dilakukan edit pada /etc/bind/named.conf.local dan /etc/bind/jarkom/arjuna.d21.com sebagai directory dari arjuna.d21.com.
+
+Berikut konfigurasi arjuna.d21.com di /etc/bind/named.conf.local
+```
+apt-get update
+apt-get install bind9 -y
+
+zone=$'
+zone "arjuna.d21.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.d21.com";
+};'
+
+pattern='zone \"arjuna.d21.com\"'
+
+if grep -q "^$pattern" "/etc/bind/named.conf.local"; then
+ echo "Zone sudah ada di file konfigurasi"
+else
+ echo "$zone" >> /etc/bind/named.conf.local
+ echo "File konfigurasi berhasil diupdate"
+fi
+```
+Berikut adalah konfigurasi arjuna.d21.com di /etc/bind/jarkom/arajuna.d21.com.
+```
+mkdir /etc/bind/jarkom
+
+cp /etc/bind/db.local /etc/bind/jarkom/arjuna.d21.com
+
+bindvar=$';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     arjuna.d21.com. root.arjuna.d21.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      arjuna.d21.com.
+@       IN      A       10.32.1.4
+www     IN      CNAME   arjuna.d21.com.
+@       IN      AAAA    ::1
+'
+
+echo "$bindvar" > /etc/bind/jarkom/arjuna.d21.com
+```
+Berikut adalah hasil ping dari website arjuna.d21.com
+![Hasil_2](/assets/2_hasil.png)
+
+## Soal 3
+Pada soal ini diminta untuk melakukan setup website abimanyu.d21.com. Setup ini dilakukan di node Yudhistira dan mengarah ke ip abimanyu (10.32.3.3).
+
+### scriptYudhistira.sh
+Berikut konfigurasi abimanyu.d21.com di /etc/bind/named.conf.local
+```
+zone=$'zone "abimanyu.d21.com" {
+        type master;
+        notify yes;
+        also-notify { 10.32.2.3; }; #ip werkudara
+        allow-transfer { 10.32.2.3; }; #ip werkudara
+        file "/etc/bind/jarkom/abimanyu.d21.com";
+};'
+
+pattern='zone \"abimanyu.d21.com\"'
+
+if grep -q "^$pattern" "/etc/bind/named.conf.local"; then
+ echo "Zone sudah ada di file konfigurasi"
+else
+ echo "$zone" >> /etc/bind/named.conf.local
+ echo "File konfigurasi berhasil diupdate"
+fi
+```
+Berikut adalah konfigurasi abimanyu.d21.com di /etc/bind/jarkom/abimanyu.d21.com.
+```
+bindvar=$';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.d21.com. root.abimanyu.d21.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      abimanyu.d21.com.
+@               IN      A       10.32.3.3
+www             IN      CNAME   abimanyu.d21.com.
+parikesit       IN      A       10.32.3.3
+www.parikesit   IN      CNAME   parikesit
+ns1             IN      A       10.32.2.3
+baratayuda      IN      NS      ns1
+@               IN      AAAA    ::1
+'
+
+echo "$bindvar" > /etc/bind/jarkom/abimanyu.d21.com
+```
+Berikut adalah hasil ping dari website abimanyu.d21.com
+![Hasil_3](/assets/3_hasil.png)
+
+## Soal 4
+Pada solusi soal sebelumnya terdapat baris yang mengatur subdomain parikesit.abimanyu.d21.com
+
+### scriptYudhistira.sh
+```
+parikesit       IN      A       10.32.3.3
+www.parikesit   IN      CNAME   parikesit
+```
+Baris ini menambahkan subdomain parikesit.abimanyu.d21.com dan mengarahkannya ke ip abimanyu.
+
+Berikut adalah hasil ping dari website parikesit.abimanyu.d21.com
+![Hasil_4](/assets/4_hasil.png)
+
+## Soal 5
+Pada soal ini diminta untuk membuat reverse DNS untuk domain abimanyu.d21.com, maka perlu menambahkan halaman baru untuk reverse DNS di node Yudhistira.
+
+### scriptYudhistira.sh
+Berikut adalah setting reverse domain untuk website abimanyu.d21.com di /etc/bind/named.conf.local
+```
+zone=$'
+zone "3.32.10.in-addr.arpa" {
+        type master;
+        file "/etc/bind/jarkom/3.32.10.in-addr.arpa";
+};'
+
+pattern='zone \"3.32.10.in-addr.arpa\"'
+
+if grep -q "^$pattern" "/etc/bind/named.conf.local"; then
+ echo "Zone sudah ada di file konfigurasi"
+else
+ echo "$zone" >> /etc/bind/named.conf.local
+ echo "File konfigurasi berhasil diupdate"
+fi
+```
+Sedangkan berikut adalah setting reverse domain domain di root folder-nya /etc/bind/jarkom/3.32.10.in-addr.arpa. 
+```
+cp /etc/bind/db.local /etc/bind/jarkom/3.32.10.in-addr.arpa
+
+bindvar=$';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.d21.com. root.abimanyu.d21.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+3.32.10.in-addr.arpa.   IN      NS      abimanyu.d21.com.
+3                       IN      PTR     abimanyu.d21.com.
+'
+
+echo "$bindvar" > /etc/bind/jarkom/3.32.10.in-addr.arpa
+```
+Berikut adalah hasil reverse DNS dari ip abimanyu, ini dilakukan dengan bantuan ```dnsutils``` menggunakan command
+```
+host -t PTR "ip abimanyu"
+```
+![Hasil_5](/assets/5_hasil.png)
+
+## Soal 6
+
+## Soal 7
+
+## Soal 8
+
+## Soal 9
+
+## Soal 10
+
+## Soal 11
+
+## Soal 12
+
+## Soal 13
+
+## Soal 14
+
+## Soal 15
+
+## Soal 16
+
+## Soal 17
+
+## Soal 18
+
+## Soal 19
+
+## Soal 20

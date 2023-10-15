@@ -46,12 +46,48 @@ $TTL    604800
 @       IN      NS      baratayuda.abimanyu.d21.com.
 @       IN      A       10.32.3.3
 www     IN      CNAME   baratayuda.abimanyu.d21.com.
-ns1     IN      A       10.32.2.2
+ns1     IN      A       10.32.2.3
 rjp     IN      NS      ns1
 @       IN      AAAA    ::1
 '
 
 echo "$bindvar" > /etc/bind/baratayuda/baratayuda.abimanyu.d21.com
+
+zone=$'zone "rjp.baratayuda.abimanyu.d21.com" {
+        type master;
+        file "/etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com";
+};'
+
+pattern='zone \"rjp.baratayuda.abimanyu.d21.com\"'
+
+if grep -q "^$pattern" "/etc/bind/named.conf.local"; then
+ echo "Zone sudah ada di file konfigurasi"
+else
+ echo "$zone" >> /etc/bind/named.conf.local
+ echo "File konfigurasi berhasil diupdate"
+fi
+
+mkdir /etc/bind/rjp
+cp /etc/bind/db.local /etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com
+
+bindvar=$';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     rjp.baratayuda.abimanyu.d21.com. root.rjp.baratayuda.abimanyu.d21.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      rjp.baratayuda.abimanyu.d21.com.
+@               IN      A       10.32.3.3
+www             IN      CNAME   rjp.baratayuda.abimanyu.d21.com.
+@               IN      AAAA    ::1
+'
+
+echo "$bindvar" > /etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com
 
 options=$'
 options {

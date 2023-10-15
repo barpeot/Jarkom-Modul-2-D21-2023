@@ -136,42 +136,6 @@ options {
 
 echo "$options" > /etc/bind/named.conf.options
 
-zone=$'zone "rjp.baratayuda.abimanyu.d21.com" {
-        type master;
-        file "/etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com";
-};'
-
-pattern='zone \"rjp.baratayuda.abimanyu.d21.com\"'
-
-if grep -q "^$pattern" "/etc/bind/named.conf.local"; then
- echo "Zone sudah ada di file konfigurasi"
-else
- echo "$zone" >> /etc/bind/named.conf.local
- echo "File konfigurasi berhasil diupdate"
-fi
-
-mkdir /etc/bind/rjp
-cp /etc/bind/db.local /etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com
-
-bindvar=$';
-; BIND data file for local loopback interface
-;
-$TTL    604800
-@       IN      SOA     rjp.baratayuda.abimanyu.d21.com. root.rjp.baratayuda.abimanyu.d21.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
-;
-@               IN      NS      rjp.baratayuda.abimanyu.d21.com.
-@               IN      A       10.32.3.3
-www             IN      CNAME   rjp.baratayuda.abimanyu.d21.com.
-@               IN      AAAA    ::1
-'
-
-echo "$bindvar" > /etc/bind/rjp/rjp.baratayuda.abimanyu.d21.com
-
 service bind9 restart
 
 #lanjutkan dengan running script6werkudara.sh di werkudara

@@ -687,8 +687,155 @@ Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com/js
 
 ## Soal 17
 
+Untuk membuat agar domain dapat diakses melalui dua port, maka kita perlu buat file konfigurasi Apache baru. Pertama kita akan buat domain baru dengan konfigurasinya seperti di bawah, dan kita simpan ke /etc/apache2/sites-available/rjp.baratayuda.abimanyu.d21.com-14000.conf.
+
+### scriptAbimanyu.sh
+
+```
+<VirtualHost *:14000>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.d21
+        ServerName rjp.baratayuda.abimanyu.d21.com
+        ServerAlias www.rjp.baratayuda.abimanyu.d21.com
+```
+
+Kita buat juga untuk port 14400
+
+```
+<VirtualHost *:14400>
+       
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.d21
+        ServerName rjp.baratayuda.abimanyu.d21.com
+        ServerAlias www.rjp.baratayuda.abimanyu.d21.com
+```
+
+Selanjutnya kita tambahkan 14000 dan 14400 ke konfigurasi port Apache di /etc/apache2/ports.conf
+
+```
+Listen 80
+Listen 14000
+Listen 14400
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>
+```
+
+Setelah itu kita download, unzip, dan pindah folder requirement yang akan ditampilkan ke /var/www/rjp.baratayuda.abimanyu.d21.
+
+```
+wget "https://drive.google.com/u/0/uc?id=1pPSP7yIR05JhSFG67RVzgkb-VcW9vQO6&export=download" -O "rjp.baratayuda.abimanyu.d21.com.zip"
+
+rm -r "/var/www/rjp.baratayuda.abimanyu.d21"
+
+unzip -o "rjp.baratayuda.abimanyu.d21.com.zip"
+
+rm "rjp.baratayuda.abimanyu.d21.com.zip"
+
+mv -i "rjp.baratayuda.abimanyu.yyy.com" "/var/www/rjp.baratayuda.abimanyu.d21"
+```
+
+Terakhir, kita aktifkan masing-masing site yang sudah kita buat
+```
+a2ensite rjp.baratayuda.abimanyu.d21.com-14000
+
+a2ensite rjp.baratayuda.abimanyu.d21.com-14400
+```
+
 ## Soal 18
+
+Soal ini sekaligus menyambung soal sebelumnya, dimana ketika kita akan mengakses rjp.baratayuda.abimanyu.d21.com lewat port 14000 atau 14400 harus ada autentifikasi khusus.
+Pertama kita buat modulnya, kemudian buat file yang berfungsi untuk kontrol login dengan username Wayang dan password baratayudad21
+
+### scriptAbimanyu.sh
+
+```
+a2enmod auth_basic
+
+htpasswd -bc /etc/apache2/.htpasswd Wayang baratayudad21
+```
+
+Karena kita akan membuat untuk seantero domain rjp.baratayuda.abimanyu.d21.com, maka kita tambahkan konfigurasi di bawah untuk masing-masing port
+```
+        <Directory /var/www/rjp.baratayuda.abimanyu.d21>
+                AuthType Basic
+                AuthName \"Insert Credentials\"
+                AuthUserFile /etc/apache2/.htpasswd
+                Require valid-user
+        </Directory>
+```
+
+
+Testing dilakukan dengan cara mengetik command di bawah pada node client
+```
+lynx rjp.baratayuda.abimanyu.d21.com:14000
+atau
+lynx rjp.baratayuda.abimanyu.d21.com:14400
+```
+Lalu memasukkan username Wayang dan password baratayudad21
+
+![image](https://github.com/barpeot/Jarkom-Modul-2-D21-2023/assets/114351382/b600cf9c-c033-4a7f-9111-4ca90ccb0f21)
+
+Setelah login berhasil, maka akan menampilkan isi web
+
+![image](https://github.com/barpeot/Jarkom-Modul-2-D21-2023/assets/114351382/e2d5f946-8c93-455f-ae2e-b0c019eda462)
+
 
 ## Soal 19
 
+Caranya cukup dengan memastikan website abimanyu menyala dan juga matikan website default
+
+```
+a2ensite abimanyu.d21.com
+a2dissite 000-default
+```
+
 ## Soal 20
+
+Pertama, kita perlu memastikan semua bagian dari parikesit.abimanyu.d21.com dapat melakukan redirect, kita tambahkan konfigurasi sebagai berikut
+
+### scriptAbimanyu.sh
+
+```
+        <Directory /var/www/parikesit.abimanyu.d21>
+                Options +FollowSymLinks -Multiviews
+                AllowOverride All
+        </Directory>
+```
+
+Kemudian, kita buat htaccess baru yang disimpan di /var/www/parikesit.abimanyu.d21/.htaccess. Kita akan menuliskan sebuah kondisi dimana saat web parikesit.abimanyu.d21.com menerima apapun permintaan dengan syarat :
+
+1. Memiliki substring 'abimanyu' di posisi manapun dalam permintaannya
+2. Memiliki format jpg, png, atau jpeg
+3. Bukan merupakan abimanyu.png itu sendiri
+
+Maka akan langsung meredirect ke abimanyu.png. Setelah itu kita aktifkan module rewritenya.
+
+```
+htaccess=$"
+RewriteEngine On
+RewriteCond http://parikesit.abimanyu.d21.com/%{REQUEST_URI} ^/((.*)abimanyu(.*).(jpg|png|jpeg))$
+RewriteCond http://parikesit.abimanyu.d21.com/%{REQUEST_URI} !/public/images/abimanyu.png
+RewriteRule ^(.*)$ http://parikesit.abimanyu.d21.com/public/images/abimanyu.png [R=301,L]
+"
+
+echo "$htaccess" > "/var/www/parikesit.abimanyu.d21/.htaccess"
+
+a2enmod rewrite
+```
+
+
+Testing dilakukan dengan cara membuat request permintaan dengan 3 syarat di atas ke parikesit.abimanyu.d21.com
+
+![image](https://github.com/barpeot/Jarkom-Modul-2-D21-2023/assets/114351382/9e00c839-9aaa-40b1-85bb-7166286e3832)
+
+Misalnya kita akan melakukan permintaan ke abimanyu-student.jpg, maka yang muncul adalah redirect ke abimanyu.png
+
+![image](https://github.com/barpeot/Jarkom-Modul-2-D21-2023/assets/114351382/eab1ea48-c1e7-4d0b-bc93-1a84c4938049)

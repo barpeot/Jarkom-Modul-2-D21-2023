@@ -346,6 +346,7 @@ echo nameserver 10.32.2.3 >>/etc/resolv.conf
 
 ## Soal 10
 Pertama, kita harus memastikan bahwa pada Arjuna kita akan membagi load balancer menuju ke node worker dengan masing-masing port yang sudah ditentukan.
+
 ### scriptArjuna.sh
 ```
 server=$' upstream myweb  {
@@ -375,7 +376,6 @@ service php7.0-fpm start
 
 service nginx restart
 ```
-
 
 Setelah Arjuna sudah kita setting, maka kita akan lakukan setting pada ketiga worker, misalnya kita akan melakukan setting pada worker Prabukusuma terlebih dahulu. 
 
@@ -526,16 +526,159 @@ Testing dilakukan dengan melakukan lynx ke abimanyu.d21.com lewat Client
 
 ![11_Hasil](https://github.com/barpeot/Jarkom-Modul-2-D21-2023/assets/114351382/79bfad7f-7a75-4753-8f64-5e50f9ca33b0)
 
-
 ## Soal 12
+
+Untuk mengubah url www.abimanyu.d21.com/index.php/home menjadi www.abimanyu.d21.com/home kita dapat menambahkan baris di bawah ini di konfigurasi server apache2 abimanyu.
+
+### scriptAbimanyu.sh
+```
+         Alias "/home" "/var/www/abimanyu.d21/index.php/home"
+```
+Kemudian dapat dites dengan command ```lynx www.abimanyu.d21.com/index.php/home```
+
+![12_Hasil](/assets/12_hasil.png)
 
 ## Soal 13
 
+Untuk menambahkan subdomain parikesit.abimanyu.d21.com langkahnya sama seperti membuat domain abimanyu.d21.com, yaitu download resourcenya dengan ```wget``` kemudian melakukan ```unzip```  dan dipindah di root folder ```/var/www/parikesit.abimanyu.d21```, selain itu perlu membuat buat file ```.conf``` dan dimasukkan ke /etc/apache2/sites-available.
+
+### scriptAbimanyu.sh
+
+```
+config=$"
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.d21
+        ServerName parikesit.abimanyu.d21.com
+        ServerAlias www.parikesit.abimanyu.d21.com
+
+        ErrorDocument 404 /error/404.html
+        ErrorDocument 403 /error/403.html
+
+        <Directory /var/www/parikesit.abimanyu.d21/public>
+                Options +Indexes
+                AllowOverride All
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.d21>
+                Options +FollowSymLinks -Multiviews
+                AllowOverride All
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.d21/secret>
+                Options -Indexes
+                AllowOverride All
+        </Directory>
+
+         Alias "/js" "/var/www/parikesit.abimanyu.d21/public/js"
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with a2disconf.
+        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+"
+
+rm -r "/var/www/parikesit.abimanyu.d21"
+
+echo "$config" > "/etc/apache2/sites-available/parikesit.abimanyu.d21.com.conf"
+
+wget "https://drive.google.com/u/0/uc?id=1LdbYntiYVF_NVNgJis1GLCLPEGyIOreS&export=download" -O "parikesit.abimanyu.d21.com.zip"
+
+unzip -o "parikesit.abimanyu.d21.com.zip"
+
+mv -i "parikesit.abimanyu.yyy.com" "/var/www/parikesit.abimanyu.d21"
+```
+
+Jangan lupa enable site dengan ```a2ensite```
+```
+a2ensite parikesit.abimanyu.d21.com
+```
+
+Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com
+![13_Hasil](/assets/13_hasil.png)
+
 ## Soal 14
 
+Untuk mensetting folder /public agar dapat melakukan directory listing perlu ditambahkan baris berikut pada konfigurasi parikesit.abimanyu.d21.com:
+
+### scriptAbimanyu.sh
+
+```
+        <Directory /var/www/parikesit.abimanyu.d21/public>
+                Options +Indexes
+                AllowOverride All
+        </Directory>
+```
+
+Sedangkan untuk mensetting folder /secret agar tidak dapat diakses perlu ditambahkan baris berikut pada konfigurasi parikesit.abimanyu.d21.com:
+```
+        <Directory /var/www/parikesit.abimanyu.d21/secret>
+                Options -Indexes
+                AllowOverride All
+        </Directory>
+```
+Test /public
+![14_public](/assets/14_public.png)
+
+Test /secret
+![14_secret](/assets/14_secret.png)
+
+
+Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com dan coba akses kedua directory
 ## Soal 15
 
+Agar dapat mengubah halaman 403 dan 404 menjadi halaman kustom perlu ditambahkan ErrorDocument pada konfigurasi parikesit.abimanyu.d21.com dengan diikuti path dari file .html yang akan digunakan:
+
+### scriptAbimanyu.sh
+
+```
+        ErrorDocument 404 /error/404.html
+        ErrorDocument 403 /error/403.html
+```
+
+Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com dan test error 404 dan 403
+
+Test error 403 (Forbidden)
+![15_forbidden](/assets/15_forbidden.png)
+
+Test error 404 (Not Found)
+![15_notfound](/assets/15_notfound.png)
+
 ## Soal 16
+
+Untuk menambahkan shortcut link dapat dengan menggunakan alias yang diatur di file konfigurasi parikesit.abimanyu.d21.com:
+
+### scriptAbimanyu.sh
+
+```
+         Alias "/js" "/var/www/parikesit.abimanyu.d21/public/js"
+```
+
+Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com/js
+![16_hasil](/assets/16_hasil.png)
 
 ## Soal 17
 

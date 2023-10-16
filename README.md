@@ -627,23 +627,25 @@ Untuk mensetting folder /public agar dapat melakukan directory listing perlu dit
 ### scriptAbimanyu.sh
 
 ```
-        <Directory /var/www/parikesit.abimanyu.d21/public>
-                Options +Indexes
-                AllowOverride All
-        </Directory>
+<Directory /var/www/parikesit.abimanyu.d21/public>
+        Options +Indexes
+        AllowOverride All
+</Directory>
 ```
 
 Sedangkan untuk mensetting folder /secret agar tidak dapat diakses perlu ditambahkan baris berikut pada konfigurasi parikesit.abimanyu.d21.com:
 ```
-        <Directory /var/www/parikesit.abimanyu.d21/secret>
-                Options -Indexes
-                AllowOverride All
-        </Directory>
+<Directory /var/www/parikesit.abimanyu.d21/secret>
+        Options -Indexes
+        AllowOverride All
+</Directory>
 ```
 Test /public
+
 ![14_public](/assets/14_public.png)
 
 Test /secret
+
 ![14_secret](/assets/14_secret.png)
 
 
@@ -655,16 +657,18 @@ Agar dapat mengubah halaman 403 dan 404 menjadi halaman kustom perlu ditambahkan
 ### scriptAbimanyu.sh
 
 ```
-        ErrorDocument 404 /error/404.html
-        ErrorDocument 403 /error/403.html
+ErrorDocument 404 /error/404.html
+ErrorDocument 403 /error/403.html
 ```
 
 Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com dan test error 404 dan 403
 
 Test error 403 (Forbidden)
+
 ![15_forbidden](/assets/15_forbidden.png)
 
 Test error 404 (Not Found)
+
 ![15_notfound](/assets/15_notfound.png)
 
 ## Soal 16
@@ -674,10 +678,11 @@ Untuk menambahkan shortcut link dapat dengan menggunakan alias yang diatur di fi
 ### scriptAbimanyu.sh
 
 ```
-         Alias "/js" "/var/www/parikesit.abimanyu.d21/public/js"
+Alias "/js" "/var/www/parikesit.abimanyu.d21/public/js"
 ```
 
 Testing dilakukan dengan lynx ke alamat parikesit.abimanyu.d21.com/js
+
 ![16_hasil](/assets/16_hasil.png)
 
 ## Soal 17
